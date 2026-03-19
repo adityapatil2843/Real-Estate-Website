@@ -1,47 +1,46 @@
-import React from 'react'
-import Navbar from './Navbar'
+import React from "react";
+import Navbar from "./Navbar";
+import headerImg from "../assets/header_img.png";
 
 const Header = () => {
   return (
-    <div
-      className="min-h-screen mb-4 bg-cover bg-center flex flex-col items-center w-full overflow-hidden relative"
-      style={{
-        backgroundImage: `url('./src/assets/header_img.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
+    <header
+      id="Header"
+      className="relative min-h-screen flex flex-col justify-center text-white overflow-hidden"
     >
-      {/* subtle dark overlay for better text visibility */}
-      <div className="absolute inset-0 bg-black/40"></div>
+      <img
+        src={headerImg}
+        alt="header"
+        className="absolute inset-0 w-full h-full object-cover -z-10"
+      />
+
+      <div className="absolute inset-0 bg-black/40 -z-10" />
 
       <Navbar />
 
-      <div className="container relative z-10 text-center mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-white">
-        
-        <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-[82px] font-semibold pt-16 md:pt-20 leading-tight drop-shadow-xl max-w-5xl mx-auto">
+      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto mt-20">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-[80px] font-semibold leading-tight drop-shadow-xl">
           Explore homes that fit your dreams
-        </h2>
+        </h1>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mt-10 md:mt-14">
-          
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 mt-10">
           <a
             href="#Projects"
-            className="px-8 py-3 rounded-lg border border-white backdrop-blur-sm hover:bg-white hover:text-black transition-all duration-300 font-medium shadow-md hover:shadow-lg active:scale-[0.98]"
+            className="px-6 py-3 rounded-full border border-white text-white hover:bg-white hover:text-black transition"
           >
             Projects
           </a>
 
           <a
             href="#Contact"
-            className="px-8 py-3 rounded-lg border border-blue-500 bg-blue-500 hover:bg-blue-600 transition-all duration-300 font-medium shadow-md hover:shadow-lg active:scale-[0.98]"
+            className="px-6 py-3 rounded-full bg-white text-black hover:opacity-90 transition"
           >
             Contact Us
           </a>
-
         </div>
       </div>
-    </div>
-  )
-}
+    </header>
+  );
+};
 
-export default Header
+export default Header;
