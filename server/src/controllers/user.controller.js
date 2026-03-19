@@ -136,6 +136,35 @@ export const logoutUser = (req, res) => {
 };
 
 
+export const userAuth = async (req, res, next) => {
+  try {
+    // Try cookie first, then Authorization header
+    const token =
+      req.cookies?.token ||
+      (req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.split(" ")[1]
+        : null);
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded?.id) {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) return res.status(401).json({ success: false, message: "User not found" });
+
+    req.user = user; // attach full user (without password)
+    next();
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    return res.status(401).json({ success: false, message: "Authentication failed" });
+  }
+};
+
 // GET USER DATA
 export const getUser = async (req, res) => {
 
@@ -152,3 +181,83 @@ export const getUser = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+/* ================= AUTH CHECK ================= */
+export const isAuthenticated = asyncHandler(async (req, res) => {
+  res.status(200).json(new ApiResponse(200, null, "Authenticated"));
+});
+
+/* ================= SEND VERIFY OTP ================= */
+export const sendVerifyOtp = asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+  if (user.isAccountVerified) return res.json(new ApiResponse(200, null, "Account already verified"));
+
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  user.verifyOtp = otp;
+  user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
+  await user.save();
+
+  await sendEmail({ to: user.email, subject: "Email Verification OTP", html: `<h2>Your OTP</h2><p><b>${otp}</b></p>` });
+
+  res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
+});
+
+/* ================= VERIFY EMAIL ================= */
+export const verifyEmail = asyncHandler(async (req, res) => {
+  const { userId, otp } = req.body;
+  if (!userId || !otp) throw new ApiError(400, "Missing details");
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.verifyOtp !== otp || user.verifyOtpExpireAt < Date.now()) {
+    throw new ApiError(400, "Invalid or expired OTP");
+  }
+
+  user.isAccountVerified = true;
+  user.verifyOtp = "";
+  user.verifyOtpExpireAt = 0;
+  await user.save();
+
+  res.status(200).json(new ApiResponse(200, null, "Email verified successfully"));
+});
+
+/* ================= SEND RESET OTP ================= */
+export const sendResetOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) throw new ApiError(400, "Email is required");
+
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(404, "User not found");
+
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  user.resetOtp = otp;
+  user.resetOtpExpireAt = Date.now() + 15 * 60 * 1000;
+  await user.save();
+
+  await sendEmail({ to: user.email, subject: "Password Reset OTP", html: `<h2>Your OTP</h2><p><b>${otp}</b></p>` });
+
+  res.status(200).json(new ApiResponse(200, null, "OTP sent to email"));
+});
+
+/* ================= RESET PASSWORD ================= */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  if (!email || !otp || !newPassword) throw new ApiError(400, "Email, OTP and new password are required");
+
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.resetOtp !== otp || user.resetOtpExpireAt < Date.now()) {
+    throw new ApiError(400, "Invalid or expired OTP");
+  }
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  user.resetOtp = "";
+  user.resetOtpExpireAt = 0;
+  await user.save();
+
+  res.status(200).json(new ApiResponse(200, null, "Password reset successfully"));
+});

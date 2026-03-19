@@ -1,98 +1,100 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { assets } from "../assets/assets";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { AppContent } from "../context/AppContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { backendUri, setIsLoggedIn, getUserData } = useContext(AppContent);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const backendUri = "http://localhost:5000";
-
-  const handleSubmit = async (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
-
     try {
+      axios.defaults.withCredentials = true;
+
       const { data } = await axios.post(
-        `${backendUri}/api/auth/login`,
-        { email, password },
-        { withCredentials: true }
+        backendUri + "/api/auth/login",
+        { email, password }
       );
 
       if (data.success) {
-        toast.success("Login successful 🚀");
-        localStorage.setItem("isLoggedIn", "true");
+        setIsLoggedIn(true);
+        getUserData();
         navigate("/");
       } else {
-        toast.error(data.message || "Login failed");
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 relative">
-      <button
+      <img
+        src={assets.logo}
         onClick={() => navigate("/")}
-        className="absolute top-5 left-5 sm:top-6 sm:left-6"
-      >
-        <img src={assets.logo} className="w-24 sm:w-28 cursor-pointer" alt="logo" />
-      </button>
+        className="absolute top-6 left-6 w-28 cursor-pointer"
+        alt="logo"
+      />
 
-      <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
-        <h2 className="text-2xl font-bold text-center">Login</h2>
-        <p className="text-gray-500 text-center mt-1 mb-6">
+      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-2">Login</h2>
+        <p className="text-gray-500 text-center mb-6">
           Welcome back 👋
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center border rounded-xl px-3 py-3">
-            <img src={assets.mail_icon} alt="" className="w-5 mr-2" />
+        <form onSubmit={onSubmitHandler} className="space-y-4">
+
+          <div className="flex items-center border rounded-lg px-3 py-2">
+            <img src={assets.mail_icon} className="w-5 mr-2" alt="" />
             <input
               type="email"
               placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full outline-none bg-transparent"
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+              className="w-full outline-none"
             />
           </div>
 
-          <div className="flex items-center border rounded-xl px-3 py-3">
-            <img src={assets.lock_icon} alt="" className="w-5 mr-2" />
+          <div className="flex items-center border rounded-lg px-3 py-2">
+            <img src={assets.lock_icon} className="w-5 mr-2" alt="" />
             <input
               type="password"
               placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full outline-none bg-transparent"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+              className="w-full outline-none"
             />
           </div>
 
-          <div className="text-right">
-            <button
-              type="button"
-              onClick={() => navigate("/reset-password")}
-              className="text-sm text-blue-500"
-            >
-              Forgot password?
-            </button>
-          </div>
+          <p
+            onClick={() => navigate("/reset-password")}
+            className="text-sm text-right text-blue-500 cursor-pointer"
+          >
+            Forgot password?
+          </p>
 
-          <button className="w-full py-3 rounded-full bg-black text-white hover:opacity-90 transition">
+          <button className="w-full py-2.5 rounded-full bg-black text-white hover:scale-105 transition">
             Login
           </button>
         </form>
 
-        <p className="text-center mt-4 text-sm text-gray-600">
+        <p className="text-center mt-4 text-sm">
           Don’t have an account?{" "}
-          <Link to="/signup" className="font-medium underline">
+          <span
+            onClick={() => navigate("/signup")}
+            className="underline cursor-pointer font-medium"
+          >
             Sign Up
-          </Link>
+          </span>
         </p>
       </div>
     </div>

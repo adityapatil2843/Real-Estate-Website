@@ -12,6 +12,8 @@ import Footer from "./components/Footer.jsx";
 
 import Signup from "./pages/SignUp.jsx";
 import Login from "./pages/Login.jsx";
+import EmailVerify from "./pages/EmailVerify.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 
 const Home = () => {
   return (
@@ -35,6 +37,8 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/email-verify" element={ <EmailVerify />}/>
+        <Route path="/reset-password" element={ <ResetPassword />}/>
       </Routes>
     </div>
   );
