@@ -1,11 +1,29 @@
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt";
 import genToken from "../utils/token.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import sendEmail from "../utils/sendEmail.js"
 
+const generateAccessAndRefereshTokens = async(userId) =>{
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return {accessToken, refreshToken}
+
+
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating referesh and access token")
+    }
+}
 // REGISTER
 export const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
@@ -99,20 +117,33 @@ export const loginUser = asyncHandler(async (req, res) => {
   // 4. Generate token
   const token = genToken(user._id);
 
+  console.log("Generated Token:", token, typeof token);
+
   // 5. Set cookie
-  res.cookie("token", token, {
+ /* res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+ });*/
+  res.cookie("token", token, { httpOnly: true,
+    secure: false, // must be false in localhost
+    sameSite: "lax", // ✅ important change
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   console.log("✅ Login successful for:", user.email);
 
+  //const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
+  //const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
   // 6. Send response
-  res.status(200).json({
+  return res
+    //.cookie("accessToken", accessToken, options)
+    //.cookie("refreshToken", refreshToken, options)
+    .status(200).json({
     success: true,
     message: "Login successful",
+    
     token, // optional if you want frontend to store it
     user: {
       _id: user._id,
@@ -178,7 +209,7 @@ export const getUser = async (req, res) => {
     });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.json({ success: false, message: "error in get user" });
   }
 };
 
@@ -189,39 +220,54 @@ export const isAuthenticated = asyncHandler(async (req, res) => {
 
 /* ================= SEND VERIFY OTP ================= */
 export const sendVerifyOtp = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
-  const user = await User.findById(userId);
+  const user = req.user; // ✅ FIXED
+
   if (!user) throw new ApiError(404, "User not found");
-  if (user.isAccountVerified) return res.json(new ApiResponse(200, null, "Account already verified"));
+
+  if (user.isAccountVerified) {
+    return res.json(new ApiResponse(200, null, "Account already verified"));
+  }
 
   const otp = String(Math.floor(100000 + Math.random() * 900000));
+
   user.verifyOtp = otp;
   user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
+
   await user.save();
 
-  await sendEmail({ to: user.email, subject: "Email Verification OTP", html: `<h2>Your OTP</h2><p><b>${otp}</b></p>` });
+  await sendEmail({
+    to: user.email,
+    subject: "Email Verification OTP",
+    html: `<h2>Your OTP</h2><p><b>${otp}</b></p>`
+  });
 
   res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
 });
 
 /* ================= VERIFY EMAIL ================= */
 export const verifyEmail = asyncHandler(async (req, res) => {
-  const { userId, otp } = req.body;
-  if (!userId || !otp) throw new ApiError(400, "Missing details");
+  const { otp } = req.body;
 
-  const user = await User.findById(userId);
+  const user = req.user; // ✅ use middleware data
+
   if (!user) throw new ApiError(404, "User not found");
 
-  if (user.verifyOtp !== otp || user.verifyOtpExpireAt < Date.now()) {
+  if (
+    user.verifyOtp !== String(otp) ||
+    user.verifyOtpExpireAt < Date.now()
+  ) {
     throw new ApiError(400, "Invalid or expired OTP");
   }
 
   user.isAccountVerified = true;
   user.verifyOtp = "";
   user.verifyOtpExpireAt = 0;
+
   await user.save();
 
-  res.status(200).json(new ApiResponse(200, null, "Email verified successfully"));
+  res.status(200).json(
+    new ApiResponse(200, null, "Email verified successfully")
+  );
 });
 
 /* ================= SEND RESET OTP ================= */
@@ -237,7 +283,16 @@ export const sendResetOtp = asyncHandler(async (req, res) => {
   user.resetOtpExpireAt = Date.now() + 15 * 60 * 1000;
   await user.save();
 
-  await sendEmail({ to: user.email, subject: "Password Reset OTP", html: `<h2>Your OTP</h2><p><b>${otp}</b></p>` });
+  await sendEmail({
+  to: user.email,
+  subject: "Password Reset OTP",
+  html: `
+    <h2>Password Reset</h2>
+    <p>Your OTP is:</p>
+    <h1>${otp}</h1>
+    <p>This OTP expires in 15 minutes.</p>
+  `,
+});
 
   res.status(200).json(new ApiResponse(200, null, "OTP sent to email"));
 });

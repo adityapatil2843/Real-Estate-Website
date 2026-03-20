@@ -1,64 +1,53 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useState, useContext } from "react";
 import { assets } from "../assets/assets";
-import axios from "axios";
-import { AppContent } from "../context/AppContext";
-import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { AppContent } from "../context/AppContext";
 
 const EmailVerify = () => {
-  const { backendUri, isLoggedin, userData, getUserData } =
-    useContext(AppContent);
   const navigate = useNavigate();
-  const inputRefs = useRef([]);
+  const { backendUri, getUserData } = useContext(AppContent);
 
-  useEffect(() => {
-    if (isLoggedin && userData?.isAccountVerified) {
-      navigate("/");
-    }
-  }, [isLoggedin, userData]);
+  const [step, setStep] = useState(1);
+  const [otp, setOtp] = useState("");
 
-  const handleInput = (e, index) => {
-    if (
-      e.target.value.length > 0 &&
-      index < inputRefs.current.length - 1
-    ) {
-      inputRefs.current[index + 1].focus();
-    }
-  };
-
-  const handleKeydown = (e, index) => {
-    if (e.key === "Backspace" && !e.target.value && index > 0) {
-      inputRefs.current[index - 1].focus();
-    }
-  };
-
-  const handlePaste = (e) => {
-    const paste = e.clipboardData.getData("text");
-    const pasteArray = paste.split("");
-
-    pasteArray.forEach((char, index) => {
-      if (inputRefs.current[index]) {
-        inputRefs.current[index].value = char;
-      }
-    });
-  };
-
-  const onSubmitHandler = async (e) => {
+  // STEP 1 → Send OTP
+  const handleSendOtp = async (e) => {
     try {
       e.preventDefault();
 
-      const otp = inputRefs.current
-        .map((input) => input.value)
-        .join("");
-
       const { data } = await axios.post(
-        backendUri + "/api/auth/verify-account",
-        { otp }
+        backendUri + "/api/auth/send-verify-otp",
+        {},
+        { withCredentials: true }
       );
 
       if (data.success) {
         toast.success(data.message);
-        getUserData();
+        setStep(2);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    }
+  };
+
+  // STEP 2 → Verify OTP
+  const handleVerify = async (e) => {
+    try {
+      e.preventDefault();
+
+      const { data } = await axios.post(
+        backendUri + "/api/auth/verify-account",
+        { otp },
+        { withCredentials: true }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        await getUserData(); // refresh user
         navigate("/");
       } else {
         toast.error(data.message);
@@ -69,47 +58,56 @@ const EmailVerify = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md text-center">
-        <img
-          src={assets.logo}
-          className="w-28 sm:w-32 mx-auto mb-6"
-          alt="logo"
-        />
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 relative">
+      <img
+        src={assets.logo}
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 w-28 sm:w-32 cursor-pointer"
+        alt="logo"
+      />
 
-        <h1 className="text-2xl font-bold mb-2">
-          Email Verification
-        </h1>
+      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-2">
+          Verify Email
+        </h2>
 
-        <p className="text-gray-500 mb-6">
-          Enter the 6-digit OTP sent to your email
+        <p className="text-gray-500 text-center mb-6">
+          {step === 1
+            ? "Click below to receive verification OTP"
+            : "Enter OTP to verify your account"}
         </p>
 
-        <form onSubmit={onSubmitHandler}>
-          <div
-            className="flex justify-between gap-2 mb-6"
-            onPaste={handlePaste}
-          >
-            {Array(6)
-              .fill(0)
-              .map((_, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  maxLength={1}
-                  required
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  onKeyDown={(e) => handleKeydown(e, index)}
-                  onInput={(e) => handleInput(e, index)}
-                  className="w-12 h-12 text-center border rounded-lg text-lg outline-none focus:ring-2 focus:ring-black"
-                />
-              ))}
-          </div>
+        {step === 1 ? (
+          <form onSubmit={handleSendOtp} className="space-y-4">
+            <button className="w-full py-2.5 rounded-full bg-black text-white hover:scale-105 transition">
+              Send OTP
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerify} className="space-y-4">
+            <div className="border rounded-lg px-3 py-2">
+              <input
+                type="text"
+                required
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full outline-none"
+              />
+            </div>
 
-          <button className="w-full py-2.5 rounded-full bg-black text-white hover:scale-105 transition">
-            Verify Email
-          </button>
-        </form>
+            <button className="w-full py-2.5 rounded-full bg-black text-white hover:scale-105 transition">
+              Verify Account
+            </button>
+          </form>
+        )}
+
+        <p
+          onClick={() => navigate("/login")}
+          className="text-center text-sm mt-4 underline cursor-pointer"
+        >
+          Back to Login
+        </p>
       </div>
     </div>
   );

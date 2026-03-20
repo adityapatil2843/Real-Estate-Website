@@ -17,7 +17,10 @@ export const AppContextProvider = (props) => {
   const getAuthStatus = async () => {
     try {
       const { data } = await axios.get(
-        backendUri + "/api/user/is-auth"
+        backendUri + "/api/auth/is-auth",
+        {
+          withCredentials: true,
+        }
       );
 
       if (data.success) {
@@ -27,7 +30,7 @@ export const AppContextProvider = (props) => {
         setIsLoggedIn(false);
       }
     } catch (error) {
-      console.log(error);
+      console.log("error 3");
       setIsLoggedIn(false);
     }
   };
@@ -36,16 +39,19 @@ export const AppContextProvider = (props) => {
   const getUserData = async () => {
     try {
       const { data } = await axios.get(
-        backendUri + "/api/auth/is-auth"
-      );
+  backendUri + "/api/auth/data",
+  {
+    withCredentials: true,
+  }
+);
 
       if (data.success) {
         setUserData(data.userData);
       } else {
-        toast.error(data.message);
+        toast.error("error 1: in context related to token");
       }
     } catch (error) {
-      toast.error(error.message);
+        toast.error("error 2");
     }
   };
 
@@ -56,7 +62,7 @@ export const AppContextProvider = (props) => {
   const value = {
     backendUri,
     isLoggedIn,
-    setIsLoggedIn, // ✅ IMPORTANT FIX
+    setIsLoggedIn, // IMPORTANT FIX
     userData,
     setUserData,
     getUserData,
