@@ -25,7 +25,7 @@ const Signup = () => {
 
       if (data.success) {
         setIsLoggedIn(true);
-        getUserData();
+        await getUserData();
         navigate("/");
       } else {
         toast.error(data.message);

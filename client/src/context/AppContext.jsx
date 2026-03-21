@@ -51,7 +51,7 @@ export const AppContextProvider = (props) => {
         toast.error("error 1: in context related to token");
       }
     } catch (error) {
-        toast.error("error 2");
+        toast.error("error 2: data nahi mil raha context mein");
     }
   };
 

@@ -29,6 +29,4 @@ router.get("/is-auth", isAuth, isAuthenticated);
 router.post("/send-verify-otp", userAuth, sendVerifyOtp);
 router.post("/verify-account", userAuth, verifyEmail);
 
-router.get("/me", isAuth, getUser);
-
 export default router;
