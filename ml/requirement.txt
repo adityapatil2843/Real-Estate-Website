@@ -1,0 +1,17 @@
+certifi==2026.2.25
+charset-normalizer==3.4.6
+colorama==0.4.6
+idna==3.11
+kagglehub==1.0.0
+kagglesdk==0.1.16
+numpy==2.4.4
+packaging==26.0
+pandas==3.0.2
+protobuf==7.34.1
+python-dateutil==2.9.0.post0
+PyYAML==6.0.3
+requests==2.33.1
+six==1.17.0
+tqdm==4.67.3
+tzdata==2025.3
+urllib3==2.6.3

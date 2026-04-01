@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "./Navbar";
 import headerImg from "../assets/header_img.png";
+import hero1 from "/dist/assets/hero-1.jpg";
 
 const Header = () => {
   return (
@@ -9,7 +10,7 @@ const Header = () => {
       className="relative min-h-screen flex flex-col justify-center text-white overflow-hidden"
     >
       <img
-        src={headerImg}
+        src={hero1}
         alt="header"
         className="absolute inset-0 w-full h-full object-cover -z-10"
       />

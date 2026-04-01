@@ -3,41 +3,35 @@ import User from "../models/user.model.js";
 
 const isAuth = async (req, res, next) => {
   try {
-    // 1. Extract token from cookies
-    let token = req.cookies.token;
+    // 1. Get token ONLY from cookies
+   const token = req.cookies.token
 
-    console.log("TOKEN (isAuth):", token);
-    console.log("Cookies:", req.cookies);
-    console.log("Headers:", req.headers.authorization);
+   console.log("TOKEN (isAuth):", token);
+   console.log("Cookies:", req.cookies);
 
-    // 2. If not in cookies, check Authorization header
-    if (!token && req.headers.authorization) {
-      if (req.headers.authorization.startsWith("Bearer ")) {
-        token = req.headers.authorization.split(" ")[1];
-      }
-    }
-
-    // 3. If still no token → reject
+    // 2. If no token → reject
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "No token provided",
+        message: "No token step 2 provided",
       });
     }
 
-    // 4. Verify token
+    // 3. Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 5. Validate payload
-    if (!decoded?.id) {
+    // 4. Get userId from token
+    const userId = decoded.id || decoded._id;
+
+    if (!userId) {
       return res.status(401).json({
         success: false,
         message: "Invalid token payload",
       });
     }
 
-    // 6. Check if user exists
-    const user = await User.findById(decoded.id).select("-password");
+    // 5. Find user
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(401).json({
@@ -46,14 +40,12 @@ const isAuth = async (req, res, next) => {
       });
     }
 
-    // 7. Attach user to request
+    // 6. Attach to request
     req.user = user;
     req.userId = user._id;
 
-    // 8. Proceed
-    next();
-
-  } catch (error) {
+    // 7. Continue
+    next();} catch (error) {
     console.error("Auth Middleware Error:", error.message);
 
     return res.status(401).json({

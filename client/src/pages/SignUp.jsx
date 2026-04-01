@@ -19,10 +19,10 @@ const Signup = () => {
       axios.defaults.withCredentials = true;
 
       const { data } = await axios.post(
-        backendUri + "/api/auth/register",
+        `${backendUri}/api/auth/register`,
         { name, email, password }
       );
-
+console.log({name,email})
       if (data.success) {
         setIsLoggedIn(true);
         await getUserData();

@@ -21,7 +21,10 @@ const Login = () => {
         backendUri + "/api/auth/login",
         { email, password }
       );
-
+      
+      const token =data.token;
+      localStorage.setItem("token",token);
+      console.log(token);
       if (data.success) {
         setIsLoggedIn(true);
         getUserData();

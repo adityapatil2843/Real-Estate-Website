@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser"
 import userRouter from "./routes/user.router.js";
+import ownerRoutes from "./routes/owner.router.js";
 import connectToDB from "./db/db.js";
 import dotenv from 'dotenv';
 dotenv.config()
@@ -19,7 +20,12 @@ app.use(
   })
 );
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.use("/api/auth", userRouter);
+app.use("/api/owner", ownerRoutes);
 
 app.listen(5000, () => {
   connectToDB()

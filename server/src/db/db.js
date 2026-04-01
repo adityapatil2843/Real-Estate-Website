@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 // Define the async function with const and arrow syntax
 const connectToDB = async () => {
-  try {
+  try {    
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ MongoDB connected successfully");
   } catch (error) {

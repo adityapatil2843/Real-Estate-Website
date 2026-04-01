@@ -24,127 +24,92 @@ const generateAccessAndRefereshTokens = async(userId) =>{
         throw new ApiError(500, "Something went wrong while generating referesh and access token")
     }
 }
-// REGISTER
+
+
 export const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
 
-
-    if (
-        [name, email, password].some(
-            (field) => !field || field.trim() === ""
-        )
-    ) {
+    if ([name, email, password].some(field => !field || field.trim() === "")) {
         throw new ApiError(400, "All fields are required");
     }
+
     const existedUser = await User.findOne({
-      $or: [{ name }, { email }]
-      
-    })
+        $or: [{ name }, { email }]
+    });
 
     if (existedUser) {
-      console.log("🚨 User exists");
-      console.log("Name:", existedUser.name);
-      console.log("Email:", existedUser.email);
-      //throw new ApiError(409, "User with email or username already exists")
+        throw new ApiError(409, "User already exists");
     }
-    console.log(req.files);
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
         name,
         email,
-        password:hashedPassword
+        password: hashedPassword
     });
 
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    );
+    // ✅ CREATE TOKEN
+    
+    const createdUser = await User.findById(user._id).select("-password");
 
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user");
-    }
-
-    return res.status(201).json(
-        new ApiResponse(201, createdUser, "User registered Successfully")
-    );
+    return res.status(201).json({
+        success: true,
+        user: createdUser,
+        password: hashedPassword,
+        message: "User registered successfully"
+    });
 });
 
-
-// LOGIN
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  // 1. Validate input
   if (!email || !password) {
-    console.log("❌ Missing email or password");
     return res.status(400).json({
       success: false,
       message: "Email and password are required",
     });
   }
 
-  console.log("📦 BODY:", req.body);
-
-  // 2. Find user
   const user = await User.findOne({ email });
 
-  console.log("👤 USER:", user);
-
   if (!user) {
-    console.log("❌ User not found with email:", email);
     return res.status(401).json({
       success: false,
       message: "Invalid email or password",
     });
   }
 
-  // 3. Compare password
   const isMatch = await bcrypt.compare(password, user.password);
 
-  console.log("🔐 Password match:", isMatch);
-
   if (!isMatch) {
-    console.log("❌ Password incorrect");
-    console.log("Entered:", password);
-    console.log("Stored Hash:", user.password);
-
     return res.status(401).json({
       success: false,
       message: "Invalid email or password",
     });
   }
 
-  // 4. Generate token
-  const token = genToken(user._id);
+  // ✅ Generate token
+  const token = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+  console.log("controller Token:",token);
+  
 
-  console.log("Generated Token:", token, typeof token);
-
-  // 5. Set cookie
- /* res.cookie("token", token, {
+  // ✅ Set cookie
+  res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
- });*/
-  res.cookie("token", token, { httpOnly: true,
-    secure: false, // must be false in localhost
-    sameSite: "lax", // ✅ important change
+    secure: false,
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  console.log("✅ Login successful for:", user.email);
-
-  //const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
-  //const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
-  // 6. Send response
-  return res
-    //.cookie("accessToken", accessToken, options)
-    //.cookie("refreshToken", refreshToken, options)
-    .status(200).json({
+  return res.status(200).json({
     success: true,
     message: "Login successful",
-    
-    token, // optional if you want frontend to store it
+    token,
     user: {
       _id: user._id,
       email: user.email,
