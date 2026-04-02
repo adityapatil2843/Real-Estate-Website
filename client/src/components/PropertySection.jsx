@@ -7,9 +7,10 @@ import axios from "axios";
 import { AppContent } from "../context/AppContext.jsx";
 import { useNavigate } from "react-router-dom";
 
-const PropertyList = () => {
+const PropertySection = () => {
   const [properties, setProperties] = useState([]);
   const { backendUri } = useContext(AppContent);
+  const navigate = useNavigate();
   
 
   useEffect(() => {
@@ -37,7 +38,7 @@ const PropertyList = () => {
         <div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"> 
             {/* Note: I adjusted the grid to lg:grid-cols-2 to look better with 4 items (2x2) */}
-            {properties.map((property) => (
+            {properties.slice(0, 3).map((property) => (
               <div
                 key={property._id}
                 className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden flex flex-col"
@@ -84,7 +85,7 @@ const PropertyList = () => {
             ))}
           </div>
           
-          {/* View More Action 
+           View More Action 
           {properties.length > 4 && (
             <div className="mt-8 text-center">
               <button 
@@ -95,11 +96,11 @@ const PropertyList = () => {
               </button>
             </div>
           )}
-            */}
         </div>
       )}
     </div>
   );
 };
 
-export default PropertyList;
+export default PropertySection;
+

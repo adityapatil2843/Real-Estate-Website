@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import headerImg from "../assets/header_img.png";
 import hero1 from "../assets/hero-1.jpg";
 import { AppContent } from "../context/AppContext.jsx";
+import PropertySection from "./PropertySection.jsx";
 
 
 
@@ -45,6 +46,7 @@ const Header = () => {
           </a>
         </div>
       </div>
+      <PropertySection/>
     </header>
   );
 };

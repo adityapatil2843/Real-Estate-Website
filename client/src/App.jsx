@@ -22,7 +22,6 @@ const Home = () => {
   return (
     <>
       <Header />
-      <PropertyList/>
       <About />
       <Projects />
       <Testimonial />
