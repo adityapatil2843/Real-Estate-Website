@@ -6,8 +6,8 @@ const isAuth = async (req, res, next) => {
     // 1. Get token ONLY from cookies
    const token = req.cookies.token
 
-   console.log("TOKEN (isAuth):", token);
-   console.log("Cookies:", req.cookies);
+    console.log("TOKEN (isAuth):", token);
+    console.log("Cookies:", req.cookies);
 
     // 2. If no token → reject
     if (!token) {

@@ -12,7 +12,20 @@ const propertySchema = new mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
+  },
+  image: {
+  type: String,
+  default: function () {
+    const images = [
+      "https://res.cloudinary.com/djqbpniai/image/upload/q_auto/f_auto/v1775110349/dummyVilla_xz0gjw.jpg",
+      "https://res.cloudinary.com/djqbpniai/image/upload/q_auto/f_auto/v1775109825/dummyProperty_kcvcwd.jpg",
+      "https://res.cloudinary.com/djqbpniai/image/upload/q_auto/f_auto/v1775110793/dummyHotel_wbsoub.avif",
+      "https://res.cloudinary.com/djqbpniai/image/upload/q_auto/f_auto/v1775110910/dummyApartment_lxy9vq.jpg"
+    ];
+    return images[Math.floor(Math.random() * images.length)];
+  }
 },
+
 
   status: {
     type: String,

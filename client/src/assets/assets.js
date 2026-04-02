@@ -8,6 +8,11 @@ import right_arrow from './right_arrow.svg'
 import hero1 from './hero-1.jpg'
 import header_img from './header_img.png'
 import brand_img from './brand_img.png'
+
+
+import dummyProperty from './dummyProperty.jpg'
+import dummyVilla from './dummyVilla.jpg'
+
 import project_img_1 from './project_img_1.jpg'
 import project_img_2 from './project_img_2.jpg'
 import project_img_3 from './project_img_3.jpg'
@@ -26,6 +31,8 @@ export const assets = {
     star_icon,
     header_img,
     hero1,
+    dummyProperty,
+    dummyVilla,
     brand_img,
     project_img_1,
     project_img_2,

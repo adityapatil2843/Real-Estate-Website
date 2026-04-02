@@ -1,9 +1,14 @@
 import React from "react";
+import {useNavigate} from 'react-router-dom'
 import Navbar from "./Navbar";
 import headerImg from "../assets/header_img.png";
-import hero1 from "/dist/assets/hero-1.jpg";
+import hero1 from "../assets/hero-1.jpg";
+import { AppContent } from "../context/AppContext.jsx";
+
+
 
 const Header = () => {
+  const navigate = useNavigate();
   return (
     <header
       id="Header"
@@ -26,10 +31,10 @@ const Header = () => {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 mt-10">
           <a
-            href="#Projects"
-            className="px-6 py-3 rounded-full border border-white text-white hover:bg-white hover:text-black transition"
+            onClick={()=>navigate("/property")}
+            className="px-6 py-3 rounded-full border border-white text-white hover:bg-white hover:text-black cursor-pointer  transition"
           >
-            Projects
+            Available
           </a>
 
           <a

@@ -25,7 +25,7 @@ export const createProperty = asyncHandler(async (req, res) => {
     });
   }*/
 
-  const { title, description, price, location } = req.body;
+  const { title, images, description, price, location } = req.body;
 
   if (!title || !price || !location) {
     return res.status(400).json({

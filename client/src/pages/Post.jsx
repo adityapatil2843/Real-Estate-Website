@@ -37,7 +37,7 @@ const Post = () => {
 
     if (data) {
       toast.success("Property Posted Successfully");
-      navigate("/");
+      navigate("/property");
     }
   } catch (error) {
     toast.error("Post ka error");

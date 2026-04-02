@@ -15,11 +15,14 @@ import Login from "./pages/Login.jsx";
 import EmailVerify from "./pages/EmailVerify.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Post from "./pages/Post.jsx";
+import PropertyList from "./pages/PropertyList.jsx"
+//import PropertyDetail from "./pages/PropertyDetail.jsx"
 
 const Home = () => {
   return (
     <>
       <Header />
+      <PropertyList/>
       <About />
       <Projects />
       <Testimonial />
@@ -41,6 +44,8 @@ const App = () => {
         <Route path="/email-verify" element={ <EmailVerify />}/>
         <Route path="/reset-password" element={ <ResetPassword />}/>
         <Route path="/post" element={<Post />} />
+        <Route path="/property" element={<PropertyList />} />
+        {/*<Route path="/property-detail" element={<PropertyDetail />} />*/}
       </Routes>
     </div>
   );

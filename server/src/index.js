@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser"
 import userRouter from "./routes/user.router.js";
 import ownerRoutes from "./routes/owner.router.js";
+import propertyRoutes from "./routes/property.routes.js";
 import connectToDB from "./db/db.js";
 import dotenv from 'dotenv';
 dotenv.config()
@@ -26,6 +27,7 @@ app.get('/health', (req, res) => {
 
 app.use("/api/auth", userRouter);
 app.use("/api/owner", ownerRoutes);
+app.use("/api/property", propertyRoutes);
 
 app.listen(5000, () => {
   connectToDB()
