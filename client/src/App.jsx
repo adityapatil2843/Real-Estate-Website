@@ -10,8 +10,8 @@ import Testimonial from "./components/Testimonial.jsx";
 import Contact from "./components/Contact.jsx";
 import Footer from "./components/Footer.jsx";
 
-import Signup from "./pages/SignUp.jsx";
 import Login from "./pages/Login.jsx";
+import Signup from "./pages/SignUp.jsx";
 import EmailVerify from "./pages/EmailVerify.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Post from "./pages/Post.jsx";
@@ -22,6 +22,7 @@ const Home = () => {
   return (
     <>
       <Header />
+     
       <About />
       <Projects />
       <Testimonial />

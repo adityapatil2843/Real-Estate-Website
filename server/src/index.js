@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser"
 import userRouter from "./routes/user.router.js";
 import ownerRoutes from "./routes/owner.router.js";
 import propertyRoutes from "./routes/property.routes.js";
+import propertyListrouter from "./routes/propertyList.router.js"
 import connectToDB from "./db/db.js";
 import dotenv from 'dotenv';
 dotenv.config()
@@ -16,7 +17,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true,
   })
 );
@@ -26,8 +27,10 @@ app.get('/health', (req, res) => {
 });
 
 app.use("/api/auth", userRouter);
-app.use("/api/owner", ownerRoutes);
+app.use("/api/owner", ownerRoutes); //create property
 app.use("/api/property", propertyRoutes);
+app.use("/api/propertyList", propertyListrouter);
+
 
 app.listen(5000, () => {
   connectToDB()

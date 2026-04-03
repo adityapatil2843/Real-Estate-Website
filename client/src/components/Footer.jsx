@@ -55,7 +55,7 @@ const Footer = () => {
                 type="email"
                 placeholder="email"
                 className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-white/70 text-sm"
-                r
+                required
               />
               <button className="px-5 py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-200 transition whitespace-nowrap">
                 Subscribe

@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { AppContent } from "../context/AppContext";
 import axios from "axios";
+import { AppContent } from "../context/AppContext.jsx";
 import { toast } from "react-toastify";
+
+axios.defaults.withCredentials = true;
 
 const navLinks = [
   { name: "Home", href: "#Header" },
@@ -36,7 +38,6 @@ const Navbar = () => {
   const sendVerificationOtp = async () => {
     try {
       axios.defaults.withCredentials = true;
-
       const { data } = await axios.post(
         backendUri + "/api/auth/send-verify-otp"
       );
@@ -56,7 +57,6 @@ const Navbar = () => {
   const logout = async () => {
     try {
       axios.defaults.withCredentials = true;
-
       const { data } = await axios.post(backendUri + "/api/auth/logout");
 
       if (data.success) {
@@ -72,6 +72,8 @@ const Navbar = () => {
   return (
     <nav className="absolute top-0 left-0 w-full z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        
+        {/* Logo */}
         <Link to="/">
           <img
             src={assets.logo}
@@ -80,8 +82,8 @@ const Navbar = () => {
           />
         </Link>
 
-        {/* Desktop menu */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Desktop menu & Auth Buttons Grouped */}
+        <div className="hidden md:flex items-center gap-6">
           <ul className="flex gap-8 text-white font-medium">
             {navLinks.map((link) => (
               <li key={link.name}>
@@ -91,6 +93,14 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
+
+          {/* Moved Post Property inside this flex group to keep layout aligned */}
+          <button
+            onClick={() => navigate("/post")}
+            className="bg-black text-white px-4 py-2 rounded-full hover:scale-105 transition"
+          >
+            Post Property
+          </button>
 
           {/* 🔥 AUTH SECTION */}
           {isLoggedIn && userData ? (
@@ -137,14 +147,8 @@ const Navbar = () => {
             </div>
           )}
         </div>
-        <button
-        onClick={() => navigate("/post")}
-        className="bg-black text-white px-4 py-2 rounded-full hover:scale-105 transition"
-      >
-        Post Property
-      </button>
 
-        {/* Mobile menu button */}
+        {/* Mobile menu button (Kept outside so it stays at the far right) */}
         <button
           onClick={() => setOpen(true)}
           className="md:hidden"
@@ -179,6 +183,18 @@ const Navbar = () => {
                 </a>
               </li>
             ))}
+            {/* Added Post Property in Mobile Menu */}
+            <li>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/post");
+                }}
+                className="w-full text-left px-4 py-3 rounded-xl bg-indigo-50 text-indigo-600 font-semibold"
+              >
+                Post Property
+              </button>
+            </li>
           </ul>
 
           {/* 🔥 MOBILE AUTH */}
@@ -187,7 +203,10 @@ const Navbar = () => {
               <>
                 {!userData.isAccountVerified && (
                   <button
-                    onClick={sendVerificationOtp}
+                    onClick={() => {
+                      setOpen(false);
+                      sendVerificationOtp();
+                    }}
                     className="w-full px-5 py-3 rounded-full border"
                   >
                     Verify Email
@@ -195,7 +214,10 @@ const Navbar = () => {
                 )}
 
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    setOpen(false);
+                    logout();
+                  }}
                   className="w-full px-5 py-3 rounded-full bg-black text-white"
                 >
                   Logout

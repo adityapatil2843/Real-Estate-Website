@@ -25,6 +25,8 @@ const Signup = () => {
 console.log({name,email})
       if (data.success) {
         setIsLoggedIn(true);
+        console.log(setIsLoggedIn);
+        
         await getUserData();
         navigate("/");
       } else {

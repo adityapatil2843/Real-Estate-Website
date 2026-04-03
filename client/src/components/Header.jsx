@@ -1,52 +1,72 @@
 import React from "react";
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
-import headerImg from "../assets/header_img.png";
 import hero1 from "../assets/hero-1.jpg";
-import { AppContent } from "../context/AppContext.jsx";
 import PropertySection from "./PropertySection.jsx";
-
-
+import SearchBar from "./SearchBar.jsx";
 
 const Header = () => {
   const navigate = useNavigate();
+
   return (
-    <header
-      id="Header"
-      className="relative min-h-screen flex flex-col justify-center text-white overflow-hidden"
-    >
+    <header className="relative min-h-screen flex flex-col justify-between text-white overflow-hidden">
+
+      {/* Background Image */}
       <img
         src={hero1}
         alt="header"
         className="absolute inset-0 w-full h-full object-cover -z-10"
       />
 
-      <div className="absolute inset-0 bg-black/40 -z-10" />
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80 -z-10" />
 
+      {/* Navbar */}
       <Navbar />
 
-      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto mt-20">
-        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-[80px] font-semibold leading-tight drop-shadow-xl">
-          Explore homes that fit your dreams
+      {/* Hero Content */}
+      <div className="relative z-10 text-center px-4 max-w-6xl mx-auto mt-24">
+
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold leading-tight drop-shadow-2xl">
+          Find Your <span className="text-indigo-400">Dream Home</span>
         </h1>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 mt-10">
-          <a
-            onClick={()=>navigate("/property")}
-            className="px-6 py-3 rounded-full border border-white text-white hover:bg-white hover:text-black cursor-pointer  transition"
-          >
-            Available
-          </a>
+        <p className="mt-6 text-lg sm:text-xl text-gray-200 max-w-2xl mx-auto">
+          Discover the best properties in your city with modern amenities and great pricing.
+        </p>
 
+        {/* Search + Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-12">
+
+          {/* Search */}
+          <div className="w-full sm:w-auto">
+            <SearchBar />
+          </div>
+          {/*
+          
+          <button
+            onClick={() => navigate("/property")}
+            className="px-7 py-3 rounded-full border border-white/70 backdrop-blur-md bg-white/10 hover:bg-white hover:text-black transition-all duration-300 shadow-lg hover:scale-105"
+          >
+            Available Properties
+          </button>
+
+          
           <a
             href="#Contact"
-            className="px-6 py-3 rounded-full bg-white text-black hover:opacity-90 transition"
+            className="px-7 py-3 rounded-full bg-indigo-500 hover:bg-indigo-600 transition-all duration-300 shadow-lg hover:scale-105"
           >
             Contact Us
-          </a>
+          </a>*/}
+
         </div>
       </div>
-      <PropertySection/>
+
+      {/* Bottom Property Section */}
+      <div className="relative z-10 mt-20">
+        <PropertySection />
+      </div>
+
     </header>
   );
 };

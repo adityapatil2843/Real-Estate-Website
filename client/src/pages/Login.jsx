@@ -12,30 +12,43 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const onSubmitHandler = async (e) => {
-    e.preventDefault();
-    try {
-      axios.defaults.withCredentials = true;
+ const onSubmitHandler = async (e) => {
+  e.preventDefault();
+  try {
+    axios.defaults.withCredentials = true;
 
-      const { data } = await axios.post(
-        backendUri + "/api/auth/login",
-        { email, password }
-      );
+    const { data } = await axios.post(
+      backendUri + "/api/auth/login",
+      { email, password }
+    );
+    
+    // 1. Check success FIRST
+    if (data.success) {
+      const token = data.token;
       
-      const token =data.token;
-      localStorage.setItem("token",token);
-      console.log(token);
-      if (data.success) {
-        setIsLoggedIn(true);
-        getUserData();
-        navigate("/");
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      // 2. Save the token immediately
+      localStorage.setItem("token", token);
+      console.log("Token saved:", token);
+
+      // 3. Update states
+      setIsLoggedIn(true);
+      console.log(setIsLoggedIn);
+
+      
+      // 4. Fetch the user data (it can now safely read the token from localStorage)
+      await getUserData(); 
+      
+      // 5. Navigate home AFTER data is fetched
+      navigate("/");
+      
+      toast.success("Logged in successfully!");
+    } else {
+      toast.error(data.message);
     }
-  };
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50 relative">
