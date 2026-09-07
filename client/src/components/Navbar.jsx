@@ -8,6 +8,8 @@ import ProfileMenu from "./ProfileMenu";
 
 axios.defaults.withCredentials = true;
 
+axios.defaults.withCredentials = true;
+
 const navLinks = [
   { name: "Home", href: "#Header" },
   { name: "About", href: "#About" },
