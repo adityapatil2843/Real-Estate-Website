@@ -5,7 +5,7 @@ const buyerSchema = new mongoose.Schema({
   wishlist: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Property"
+      ref: "Property",
     }
   ]
 });

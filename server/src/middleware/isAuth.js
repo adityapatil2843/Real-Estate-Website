@@ -1,58 +1,125 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import Owner from "../models/owner.model.js";
 
-const isAuth = async (req, res, next) => {
+// Helper to extract JWT token from Cookie OR Authorization Bearer Header
+const extractToken = (req) => {
+  if (req.cookies?.token) {
+    return req.cookies.token;
+  }
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    return req.headers.authorization.split(" ")[1];
+  }
+  return null;
+};
+
+// Tourist Middleware (current isAuth logic)
+export const protectUser = async (req, res, next) => {
   try {
-    // 1. Get token ONLY from cookies
-   const token = req.cookies.token
+    const token = extractToken(req);
 
-    console.log("TOKEN (isAuth):", token);
-    console.log("Cookies:", req.cookies);
-
-    // 2. If no token → reject
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "No token step 2 provided",
-      });
+      return res.status(401).json({ success: false, message: "Not authenticated" });
     }
 
-    // 3. Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // 4. Get userId from token
-    const userId = decoded.id || decoded._id;
+    const userId = decoded.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid token payload",
-      });
+      return res.status(401).json({ success: false, message: "Invalid token payload" });
     }
 
-    // 5. Find user
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found",
+      return res.status(401).json({ success: false, message: "User not found" });
+    }
+
+    req.user = user;
+    req.userId = user._id;
+    next();
+  } catch (error) {
+    console.error("protectUser Middleware Error:", error.message);
+    return res.status(401).json({ success: false, message: "Authentication failed" });
+  }
+};
+
+// Owner Middleware (new)
+export const protectOwner = async (req, res, next) => {
+  try {
+    const token = extractToken(req);
+
+    if (!token) {
+      console.log("ProtectOwner ERROR: No token provided");
+      return res.status(401).json({ 
+        success: false, 
+        message: "Authentication failed: No token provided. Please log in." 
       });
     }
 
-    // 6. Attach to request
-    req.user = user;
-    req.userId = user._id;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check role from token
+    if (decoded.role !== "owner") {
+      console.log("ProtectOwner ERROR: Role mismatch detected", { 
+        id: decoded.id, 
+        role: decoded.role 
+      });
+      return res.status(403).json({ 
+        success: false, 
+        message: `Access denied: Account role is '${decoded.role}', expected 'owner'.` 
+      });
+    }
 
-    // 7. Continue
-    next();} catch (error) {
-    console.error("Auth Middleware Error:", error.message);
+    const owner = await Owner.findById(decoded.id).select("-password");
 
-    return res.status(401).json({
-      success: false,
-      message: "Authentication failed",
+    if (!owner) {
+      console.log("ProtectOwner ERROR: Owner ID not found in database", decoded.id);
+      return res.status(401).json({ 
+        success: false, 
+        message: "Owner profile not found. If you recently registered, please ensure you used the Owner Signup." 
+      });
+    }
+
+    req.owner = owner;
+    next();
+  } catch (error) {
+    console.error("ProtectOwner ERROR: JWT verification failed", error.message);
+    return res.status(401).json({ 
+      success: false, 
+      message: "Session expired or invalid token. Please log in again." 
     });
   }
 };
 
-export default isAuth;
+// Unified Middleware for shared routes (e.g. /api/auth/data)
+export const protectAny = async (req, res, next) => {
+  try {
+    const token = extractToken(req);
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check both collections based on role or just check both
+    if (decoded.role === "owner") {
+      const owner = await Owner.findById(decoded.id).select("-password");
+      if (!owner) return res.status(401).json({ success: false, message: "Owner profile not found" });
+      req.owner = owner;
+      req.userId = owner._id; 
+      req.role = "owner";
+    } else {
+      const user = await User.findById(decoded.id).select("-password");
+      if (!user) return res.status(401).json({ success: false, message: "User not found" });
+      req.user = user;
+      req.userId = user._id;
+      req.role = user.role;
+    }
+    
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "Authentication failed" });
+  }
+};

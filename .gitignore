@@ -1,5 +1,12 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python,django,node,react,matlab,flask,cmake
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,django,node,react,matlab,flask,cmake
+# Node dependencies & builds
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.env
+.env.local
+.env.*.local
+*.log
 
 ### CMake ###
 CMakeLists.txt.user

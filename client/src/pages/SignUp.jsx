@@ -12,21 +12,34 @@ const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("tourist");
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     try {
       axios.defaults.withCredentials = true;
 
+      const endpoint = role === "owner" ? `${backendUri}/api/auth/owner/register` : `${backendUri}/api/auth/register`;
+      
       const { data } = await axios.post(
-        `${backendUri}/api/auth/register`,
+        endpoint,
         { name, email, password }
       );
-console.log({name,email})
+console.log({name,email, role})
       if (data.success) {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
         setIsLoggedIn(true);
+        
         await getUserData();
-        navigate("/");
+        if (data.user && data.user.role === "owner") {
+          navigate("/owner");
+        } else if (data.user && data.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
         toast.error(data.message);
       }
@@ -89,6 +102,29 @@ console.log({name,email})
               value={password}
               className="w-full outline-none"
             />
+          </div>
+
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="radio" 
+                value="tourist" 
+                checked={role === "tourist"} 
+                onChange={(e) => setRole(e.target.value)} 
+                className="w-4 h-4" 
+              />
+              <span className="text-gray-700">Tourist</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="radio" 
+                value="owner" 
+                checked={role === "owner"} 
+                onChange={(e) => setRole(e.target.value)} 
+                className="w-4 h-4" 
+              />
+              <span className="text-gray-700">Property Owner</span>
+            </label>
           </div>
 
           <button className="w-full py-2.5 rounded-full bg-black text-white hover:scale-105 transition">

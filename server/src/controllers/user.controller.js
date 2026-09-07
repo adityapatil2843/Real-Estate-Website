@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import Owner from "../models/owner.model.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt";
@@ -26,8 +27,18 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 }
 
 
+const getCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === "production";
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+};
+
 export const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     if ([name, email, password].some(field => !field || field.trim() === "")) {
         throw new ApiError(400, "All fields are required");
@@ -46,18 +57,71 @@ export const registerUser = asyncHandler(async (req, res) => {
     const user = await User.create({
         name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        role: role === "admin" ? "admin" : "tourist" // Strictly restrict to non-owner roles
     });
 
-    // ✅ CREATE TOKEN
-    
     const createdUser = await User.findById(user._id).select("-password");
+
+    // ✅ Generate token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // ✅ Set cookie
+    res.cookie("token", token, getCookieOptions());
 
     return res.status(201).json({
         success: true,
         user: createdUser,
-        password: hashedPassword,
+        token,
         message: "User registered successfully"
+    });
+});
+
+export const registerOwner = asyncHandler(async (req, res) => {
+    const { name, email, password } = req.body;
+
+    if ([name, email, password].some(field => !field || field.trim() === "")) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+    // Check both collections
+    const existedUser = await User.findOne({ email });
+    const existedOwner = await Owner.findOne({ email });
+
+    if (existedUser || existedOwner) {
+        throw new ApiError(400, "Email already registered");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const owner = await Owner.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: "owner"
+    });
+
+    const createdOwner = await Owner.findById(owner._id).select("-password");
+
+    // ✅ Generate JWT
+    const token = jwt.sign(
+      { id: owner._id, role: "owner" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // ✅ Set cookie
+    res.cookie("token", token, getCookieOptions());
+
+    return res.status(201).json({
+        success: true,
+        user: createdOwner,
+        token,
+        message: "Owner registered successfully"
     });
 });
 
@@ -71,58 +135,64 @@ export const loginUser = asyncHandler(async (req, res) => {
     });
   }
 
-  const user = await User.findOne({ email });
+  // 1. Query User collection
+  let foundUser = await User.findOne({ email });
+  let foundOwner = null;
 
-  if (!user) {
-    return res.status(401).json({
+  // 2. If not found in User, query Owner collection
+  if (!foundUser) {
+    foundOwner = await Owner.findOne({ email });
+  }
+
+  // 4. If both are null
+  if (!foundUser && !foundOwner) {
+    return res.status(404).json({
       success: false,
-      message: "Invalid email or password",
+      message: "No account found with this email"
     });
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  // 5. Set account
+  const account = foundUser || foundOwner;
+
+  // 6. Compare password
+  const isMatch = await bcrypt.compare(password, account.password);
 
   if (!isMatch) {
     return res.status(401).json({
       success: false,
-      message: "Invalid email or password",
+      message: "Incorrect password",
     });
   }
 
-  // ✅ Generate token
+  // 8. Generate JWT
   const token = jwt.sign(
-    { id: user._id },
+    { id: account._id, role: account.role },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
-  console.log("controller Token:",token);
-  
 
-  // ✅ Set cookie
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  // 9. Send token (cookie)
+  res.cookie("token", token, getCookieOptions());
 
+  // 10. Return response
   return res.status(200).json({
     success: true,
-    message: "Login successful",
-    token,
-    user: {
-      _id: user._id,
-      email: user.email,
-      name: user.name,
-    },
+    role: account.role,
+    name: account.name,
+    token // Send token in response too as per current flow
   });
 });
 
 
 // LOGOUT
 export const logoutUser = (req, res) => {
-
-  res.clearCookie("token");
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+  });
 
   res.json({
     success: true,
@@ -161,20 +231,23 @@ export const userAuth = async (req, res, next) => {
   }
 };
 
-// GET USER DATA
+// GET USER/OWNER DATA
 export const getUser = async (req, res) => {
-
   try {
-
-    const user = await User.findById(req.userId).select("-password");
+    const account = req.user || req.owner;
+    
+    if (!account) {
+        return res.status(404).json({ success: false, message: "Account not found" });
+    }
 
     res.json({
       success: true,
-      user
+      user: account
     });
 
   } catch (error) {
-    res.json({ success: false, message: "error in get user" });
+    console.error("getUser Error:", error);
+    res.json({ success: false, message: "error in get profile" });
   }
 };
 

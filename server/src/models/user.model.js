@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-
+    role: { type: String, enum: ["tourist", "admin"], default: "tourist" },
+    status: { type: String, enum: ["pending", "verified", "suspended"], default: "pending" },
   name: {
     type: String,
     required: true
