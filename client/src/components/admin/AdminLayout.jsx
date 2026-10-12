@@ -37,7 +37,7 @@ const AdminLayout = ({ children, title = "Dashboard", actionButton = null }) => 
   return (
     <div className="flex h-screen bg-gray-50 font-sans">
       {/* Sidebar - Fixed 220px wide */}
-      <div className="w-[220px] shadow-sm bg-white border-r border-gray-200 flex flex-col fixed inset-y-0 left-0">
+      <div className="w-[220px] shadow-sm bg-white border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 z-20" style={{ backgroundColor: "#ffffff" }}>
         <div className="flex items-center justify-center py-6 border-b border-gray-200 shrink-0">
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">StayLonavala</h1>
           <span className="text-xs text-blue-600 font-semibold align-top ml-1 mt-[-10px]">ADMIN</span>

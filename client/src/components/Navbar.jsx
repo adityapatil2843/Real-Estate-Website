@@ -74,7 +74,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="absolute top-0 left-0 w-full z-30">
+    <nav className="w-full relative z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         
         {/* Logo */}
@@ -98,14 +98,6 @@ const Navbar = () => {
             ))}
           </ul>
 
-          {/* Moved Post Property inside this flex group to keep layout aligned 
-          <button
-            onClick={() => navigate("/post")}
-            className="bg-black text-white px-4 py-2 rounded-full hover:scale-105 transition"
-          >
-            Post Property
-          </button>
-            */}
           {/* 🔥 AUTH SECTION */}
           {isLoggedIn && userData ? (
             <ProfileMenu 
@@ -134,19 +126,21 @@ const Navbar = () => {
 
         {/* Mobile menu button (Kept outside so it stays at the far right) */}
         <button
+          type="button"
           onClick={() => setOpen(true)}
-          className="md:hidden"
+          className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 active:scale-95 transition cursor-pointer"
           aria-label="Open menu"
         >
-          <img src={assets.menu_icon} className="w-7" alt="menu" />
+          <img src={assets.menu_icon} className="w-7 h-auto pointer-events-none" alt="menu" />
         </button>
       </div>
 
       {/* Mobile drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-[82%] max-w-sm bg-white shadow-2xl transition-transform duration-300 z-40 md:hidden ${
-          open ? "translate-x-0" : "translate-x-full"
+        className={`fixed top-0 right-0 h-screen w-[85%] max-w-sm bg-white shadow-2xl transition-transform duration-300 ease-in-out z-50 overflow-y-auto md:hidden ${
+          open ? "translate-x-0" : "translate-x-full pointer-events-none"
         }`}
+        style={{ backgroundColor: "#ffffff" }}
       >
         <div className="flex items-center justify-between p-5 border-b">
           {isLoggedIn && userData ? (
@@ -162,12 +156,17 @@ const Navbar = () => {
           ) : (
             <div className="font-bold text-lg text-black">Menu</div>
           )}
-          <button onClick={() => setOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition">
-            <img src={assets.cross_icon} className="w-5" alt="close" />
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="p-2 hover:bg-gray-100 rounded-full transition cursor-pointer"
+            aria-label="Close menu"
+          >
+            <img src={assets.cross_icon} className="w-5 h-5 pointer-events-none" alt="close" />
           </button>
         </div>
 
-        <div className="px-5">
+        <div className="px-5 pb-8">
           <ul className="flex flex-col gap-3 text-gray-800 font-medium">
             {navLinks.map((link) => (
               <li key={link.name}>
@@ -183,6 +182,7 @@ const Navbar = () => {
             {/* Added Post Property in Mobile Menu */}
             <li>
               <button
+                type="button"
                 onClick={() => {
                   setOpen(false);
                   navigate("/post");
@@ -200,6 +200,7 @@ const Navbar = () => {
               <>
                 {!userData.isAccountVerified && (
                   <button
+                    type="button"
                     onClick={() => {
                       setOpen(false);
                       sendVerificationOtp();
@@ -211,6 +212,7 @@ const Navbar = () => {
                 )}
 
                 <button
+                  type="button"
                   onClick={() => {
                     setOpen(false);
                     logout();
@@ -223,6 +225,7 @@ const Navbar = () => {
             ) : (
               <>
                 <button
+                  type="button"
                   onClick={() => {
                     setOpen(false);
                     navigate("/login");
@@ -233,6 +236,7 @@ const Navbar = () => {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => {
                     setOpen(false);
                     navigate("/signup");
@@ -251,7 +255,7 @@ const Navbar = () => {
       {open && (
         <div
           onClick={() => setOpen(false)}
-          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          className="fixed inset-0 bg-black/60 z-40 md:hidden cursor-pointer"
         />
       )}
     </nav>

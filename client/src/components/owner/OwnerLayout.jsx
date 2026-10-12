@@ -31,7 +31,7 @@ const OwnerLayout = () => {
     <div className="flex h-screen bg-gray-50 font-sans overflow-hidden">
 
       {/* Sidebar */}
-      <div className="w-[220px] shrink-0 bg-white border-r border-gray-200 flex flex-col h-full inset-y-0 left-0 fixed">
+      <div className="w-[220px] shrink-0 bg-white border-r border-gray-200 flex flex-col h-full inset-y-0 left-0 fixed z-20" style={{ backgroundColor: "#ffffff" }}>
         <div className="px-6 py-8 border-b border-gray-100 text-center">
           <h2 className="text-xl font-bold text-gray-800">{userData ? userData.name : "Loading..."}</h2>
           <span className="inline-block mt-2 px-2.5 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full uppercase tracking-wider">

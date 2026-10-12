@@ -16,6 +16,13 @@ export const AppContextProvider = (props) => {
   // ✅ Check auth status
   const getAuthStatus = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsLoggedIn(false);
+        setUserData(null);
+        return;
+      }
+
       const { data } = await axios.get(
         backendUri + "/api/auth/is-auth",
         {
@@ -30,7 +37,6 @@ export const AppContextProvider = (props) => {
         setIsLoggedIn(false);
       }
     } catch (error) {
-      console.log("error 3");
       setIsLoggedIn(false);
     }
   };
